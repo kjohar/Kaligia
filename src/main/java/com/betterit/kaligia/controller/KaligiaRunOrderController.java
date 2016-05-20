@@ -6,6 +6,10 @@ package com.betterit.kaligia.controller;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import com.betterit.kaligia.KaligiaRunOrder;
 import com.betterit.kaligia.TestRun;
 import com.betterit.kaligia.dao.model.kaligia.TestProcedure;
+import com.betterit.kaligia.service.EndPointService;
 import com.betterit.kaligia.service.TestOrderService;
 import com.betterit.kaligia.service.TestProcedureService;
 
@@ -35,16 +40,28 @@ public class KaligiaRunOrderController {
 	
 	@Autowired
 	private TestOrderService tos;
+	
+	@Autowired
+	private EndPointService eps;
 
 	@RequestMapping(value="/KaligiaRunOrder", method=RequestMethod.GET)
-    public String runOrderForm(Model model) {
+    public String runOrderForm(HttpSession session, HttpServletRequest request, Model model) {
 
 		KaligiaRunOrder runOrderObj = new KaligiaRunOrder();
-        List<TestProcedure> procedureList = tps.findAll();
-
+        List<TestProcedure> procedureList = tps.findAllByStatus("ACTIVE");
+        String uRole="";
+        
+        runOrderObj.setOrderNo(eps.getActiveEndPointName() + "-");
         model.addAttribute("ProcedureList", procedureList);
 		model.addAttribute("RunOrder", runOrderObj);
-				
+		if (request.isUserInRole("ROLE_Admin")) {
+			uRole="Admin";
+		}
+		else
+		{
+			uRole="Operator";
+		}
+		model.addAttribute("UserRole", uRole);
 		return ("KaligiaRunOrder");
 	}
 
@@ -53,7 +70,7 @@ public class KaligiaRunOrderController {
 		
 		log.info("In KaligiaRunOrder POST");
 		log.info("received values" + runOrderObject.toString());
-		
+
 		//Find the testProcedure to run
 		TestProcedure testProcObj= tps.findByName(runOrderObject.getTestProcedure());
 		if (testProcObj == null)
@@ -85,7 +102,12 @@ public class KaligiaRunOrderController {
 					runOrderObject.getDiastolicBP(),
 					runOrderObject.getSystolicBP(),
 					runOrderObject.getSkinColor(),
-					runOrderObject.getSpecimen() 
+					runOrderObject.getSpecimen(),
+					runOrderObject.getLumosity(),
+					runOrderObject.getRed(),
+					runOrderObject.getBlue(),
+					runOrderObject.getGreen(),
+					runOrderObject.getImageFile()
 					);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

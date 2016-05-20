@@ -1,32 +1,38 @@
 ﻿<!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-<title>Create Spectra Procedure</title>
+<title>Run Test</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <link rel="stylesheet" type="text/css" href="/images/loginform.css" />
 <link rel="stylesheet" type="text/css" href="/images/form1.css" />
+<script th:src="@{/js/jquery-1.12.2.min.js}"></script>
+<script th:src="@{/js/jquery.blockUI.js}"></script>
 </head>
-<body>
-	<form action="#" th:action="@{KaligiaRunOrder}" th:object="${RunOrder}"
-		method="POST">
+<body onload="prePopulate()">
+	<form id="form1" th:action="@{KaligiaRunOrder}" th:object="${RunOrder}" method="POST">
 		<header>
-				<div id="logo"></div>
+				<a id="logo" href="KaligiaMainApp.html" class="linkedImage"></a>
+				<a id="logo1" th:text="Logout" href="logout"></a>
 			</header>
 			<div class="user">
 				<div class="user_logout">
 				<p id="user_name" th:text="${#httpServletRequest.remoteUser}"></p>
+				
 				</div>
 			</div>
 			
 		<hr />
-
+		<input id="uRole" type="text" hidden="hidden"
+						th:value="${UserRole}"/>
+		<div id="message" style="display:none;">
+		</div>
 		<fieldset>
 			<legend>Order Data</legend>
 			<table>
 				<tr>
 					<td>Order No :</td>
-					<td><input type="text" required="required"
-						th:field="*{orderNo}" /></td>
+					<td><input id="orderNo" type="text" required="required"
+						th:field="*{orderNo}" th:value="*{orderNo}"/></td>
 					<td>Procedure</td>
 					<td><select class="procedure_dropdown" id="procedureDrop" 
 					th:field="*{testProcedure}">
@@ -62,13 +68,21 @@
 					<td><input type="date" required="required"
 						th:field="*{dateOfBirth}" /></td>
 					<td>Gender:</td>
-					<td><input type="text" required="required"
-						th:field="*{patientGender}" /></td>
-					
+					<td><select class="gender_dropdown" th:field="*{patientGender}">
+							<option value="Male">Male</option>
+							<option value="Female">Female</option>
+							<option value="Other">Other</option>
+					</select>
+					</td>
 					<td>Ethnicity:</td>
-					<td><input type="text" required="required"
-						th:field="*{patientEthnicity}" /></td>
-					
+					<td><select class="eth_dropdown" th:field="*{patientEthnicity}">
+							<option value="White">White</option>
+							<option value="Hispanic/Latino">Hispanic/Latino</option>
+							<option value="African American">African American</option>
+							<option value="Asian">Asian</option>
+							<option value="Other">Other</option>
+					</select>
+					</td>
 				</tr>
 			</table>
 		</fieldset>
@@ -77,40 +91,143 @@
 			<table>
 				<tr>
 					<td>BP (mmHg):</td>
-					<td><input class="bp-box" type="text" required="required" th:field="*{systolicBP}" width="4" maxlength="4"/>  
+					<td><input id="highBP" class="bp-box" type="text" required="required" th:field="*{systolicBP}" width="4" maxlength="4"/>  
 					 / 
-					 <input class="bp-box" type="text"	required="required" th:field="*{diastolicBP}" width="4" maxlength="4"/>
+					 <input id="lowBP" class="bp-box" type="text"	required="required" th:field="*{diastolicBP}" width="4" maxlength="4"/>
                     </td> 
 					<td>Height (in inches):</td>
-					<td><input type="text" required="required"
+					<td><input id="pheight" type="text" required="required"
 						th:field="*{patientHeight}" /></td>
 					<td>Weight (in lbs):</td>
-					<td><input type="text" required="required"
+					<td><input id="pweight" type="text" required="required"
 						th:field="*{patientWeight}" /></td>
                     
 				</tr>
 				<tr>
                     <td>Temperature(F):</td>
                     <td>
-                        <input type="text" required="required"
+                        <input id="pTemperature" type="text" required="required"
                                th:field="*{patientTemp}" />
                     </td>
 					<td>Oxygen level:</td>
-					<td><input type="text" required="required"
+					<td><input id="pOLevel" type="text" required="required"
 						th:field="*{patientOLevel}" /></td>
 					<td>Heart Rate (bpm):</td>
-					<td><input type="text" required="required"
+					<td><input id="pHeartRate" type="text" required="required"
 						th:field="*{patientHeartRate}" /></td>
-					<td>Skin Color Value:</td>
+					<!--  <td>Skin Color Value:</td>
 					<td><input type="text" required="required"
 						th:field="*{skinColor}" /></td>	
+					-->
+					<td>
+					<button id="ajaxButton" type="button" onclick="getImage(); return false;"> SKIN CAPTURE</button>
+					</td>
 				</tr>
 			</table>
 		</fieldset>
+		<div id="skinImage">
+		<table>
+				<tr>
+					<td>Lumosity :</td>
+					<td><input id="lumosity" type="text" readonly="readonly"
+						th:field="*{lumosity}" /></td>
+					<td>Red :</td>
+					<td><input id="red" type="text" readonly="readonly"
+						th:field="*{red}" /></td>
+					<td>Green :</td>
+					<td><input id="green" type="text" readonly="readonly"
+						th:field="*{green}" /></td>
+					<td>Blue :</td>
+					<td><input id="blue" type="text" readonly="readonly"
+						th:field="*{blue}" /></td>
+					<td>File :</td>
+					<td><input id="imageFile" type="text" readonly="readonly"
+						th:field="*{imageFile}" /></td>
+				</tr>
+		</table>
+		</div>
 		
 		<input class="submit-button" type="submit" name="RunTest"
 				value="RUN TEST" />
+		
 
 	</form>
+					
+	<script type="text/javascript">
+		//<![CDATA[
+		//$(document).ajaxStop($.unblockUI);
+		
+		function getImage(){
+				var ordNo = document.getElementById("orderNo").value;
+				if(ordNo == "" || ordNo == null) {
+				    alert("OrderNo is empty. Please fill Order number.");
+				    return;
+				}
+				$.blockUI({ message: '<h2>Processing Request... <img src="/images/busy-icon.gif" /></h2>' });
+			
+				$.getJSON('/skinCapture', { orderNo: ordNo }, function(data, status) {
+					document.getElementById("lumosity").value = data["lumosity"];
+					document.getElementById("red").value = data["red"];
+					document.getElementById("blue").value = data.blue;
+					document.getElementById("green").value = data.green;
+					document.getElementById("imageFile").value = data.imageFile;
+				    console.log(" lumosity is "+ data["lumosity"]);
+					document.getElementById("skinImage").style.display = "block";
+					$.unblockUI;
+				}).fail( function(d, textStatus, error) {
+			        console.error("skin Capture failed, status: " + textStatus + ", error: "+error);
+			        alert("Skin Capture failed. Please check camera and retry");
+			        $.unblockUI;
+			    });
+			
+			};
+			
+			$("#form1").submit(function() {
+				var procName = document.getElementById("procedureDrop").value;
+				
+				$.get('/RunTime', { procedureName: procName }, function(data, status) {
+					startTimerCount(data);
+				}).fail(function(d, textStatus, error) {
+			        console.error("Runtime calculation failed, status: " + textStatus + ", error: "+error);
+			        startTimerCount(30);
+			    });
+				
+			        $.blockUI({ message: $('#message'),
+			            centerX: true,
+			            centerY: true,
+			            css: {
+			                width: '600px',
+			                height: '200px',
+			                border: '3px solid #FF9900',
+			                backgroundColor: '#000',
+			                color: '#fff',
+			                padding: '25px'
+			            }
+			        });
+		            }); 
+			
+			function prePopulate() {
+			  if (document.getElementById("uRole").value == "Admin")  {
+				  	document.getElementById("highBP").value = "0";
+				  	document.getElementById("lowBP").value = "0";
+				  	document.getElementById("pTemperature").value = "0";
+				  	document.getElementById("pOLevel").value = "0";
+				 	document.getElementById("pHeartRate").value = "0";
+				  	document.getElementById("pheight").value = "0";
+				  	document.getElementById("pweight").value = "0";
+				  }
+			};
+			
+			function startTimerCount(time){
+				r=document.getElementById('message'),tmp=time;
+				setInterval(function(){
+				var c=tmp--,m=(c/60)>>0,s=(c-m*60)+'';
+				r.textContent='Test Ends approximately in '+m+':'+(s.length>1?'':'0')+s
+				tmp!=0||(tmp=time);
+				},1000);
+			};
+			
+		//]]>
+		</script>
 </body>
 </html>

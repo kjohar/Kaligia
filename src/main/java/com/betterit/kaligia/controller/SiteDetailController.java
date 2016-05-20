@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -33,6 +34,7 @@ import com.betterit.kaligia.service.SiteService;
 
 
 @Controller
+@PreAuthorize("hasAnyRole('ROLE_Admin')")
 public class SiteDetailController {
 
 	Logger log = Logger.getLogger(SiteDetailController.class.getName());
@@ -65,7 +67,7 @@ public class SiteDetailController {
 		if (kbsObj==null)
 		{
 			kbsObj=new KBSystem();
-			for(int i=1; i<8; i++){
+			for(int i=1; i<9; i++){
 				DeviceList dObj= new DeviceList();
 				dList.add(dObj);
 			}
@@ -86,6 +88,8 @@ public class SiteDetailController {
 		log.info("list length is " + kbsObject.getKbsDeviceList().size());
 		
 		//Set the creation parameters
+		String epLower= kbsObject.getEndpoint().getName().toLowerCase();
+		kbsObject.getEndpoint().setName(epLower);
 		kbsObject.getEndpoint().setCreationDate(new Date());
 		kbsObject.getEndpoint().setCreatedBy(1);
 		
@@ -111,8 +115,9 @@ public class SiteDetailController {
 		
 		//Map EndPointDevices
 		eps.mapEndPointDevices(ep, dil, deleteAdd);
-		
-	return ("redirect:/KBSDetail");
+		String retView= "redirect:/KBSDetail?siteId=" + kbsObject.getEndpoint().getSiteId();
+	//return ("redirect:/KBSDetail");
+		return retView;
 	}
 	
 	@RequestMapping(value="/KBSDetail", method=RequestMethod.GET)
@@ -135,7 +140,7 @@ public class SiteDetailController {
 			epObj.setEndPointId(0);
 			epObj.setSiteId(siteId);
 			kbsObj.setEndpoint(epObj);
-			for(int i=1; i<8; i++){
+			for(int i=1; i<9; i++){
 				DeviceList dObj= new DeviceList();
 				dList.add(dObj);
 			}
